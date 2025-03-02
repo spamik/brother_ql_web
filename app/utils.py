@@ -5,9 +5,21 @@ from io import BytesIO
 from pdf2image import convert_from_bytes
 
 
-def convert_image_to_bw(image, threshold):
-    fn = lambda x : 255 if x > threshold else 0
-    return image.convert('L').point(fn, mode='1') # convert to greyscale
+def convert_image_to_bw(image, threshold, high_threshold=200):
+    #fn = lambda x : 255 if x > threshold else 0
+    #return image.convert('L').point(fn, mode='1') # convert to greyscale
+    greyscale = image.convert('L')
+    new_pixels = []
+    for x in greyscale.getdata():
+        if x <= threshold:
+            new_pixels.append((0, 0, 0))
+        elif x <= high_threshold:
+            new_pixels.append((255, 0, 0))
+        else:
+            new_pixels.append((255, 255, 255))
+    result = Image.new('RGB', greyscale.size)
+    result.putdata(new_pixels)
+    return result
 
 
 def imgfile_to_image(file):

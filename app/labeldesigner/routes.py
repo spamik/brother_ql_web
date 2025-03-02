@@ -154,15 +154,18 @@ def create_label_from_request(request):
             raise LookupError("Couln't find the font & style")
         return font_path
 
-    def get_uploaded_image(image):
+    def get_uploaded_image(image, red_color=False):
+        black_threshold=200
+        if(red_color):
+            black_threshold=50
         try:
             name, ext = os.path.splitext(image.filename)
             if ext.lower() in ('.png', '.jpg', '.jpeg'):
                 image = imgfile_to_image(image)
-                return convert_image_to_bw(image, 200)
+                return convert_image_to_bw(image, black_threshold)
             elif ext.lower() in ('.pdf'):
                 image = pdffile_to_image(image, DEFAULT_DPI)
-                return convert_image_to_bw(image, 200)
+                return convert_image_to_bw(image, black_threshold)
             else:
                 return None
         except AttributeError:
@@ -194,7 +197,7 @@ def create_label_from_request(request):
         width, height = height, width
     if label_orientation == LabelOrientation.ROTATED:
         height, width = width, height
-
+    
     return SimpleLabel(
         width=width,
         height=height,
@@ -214,7 +217,7 @@ def create_label_from_request(request):
         text_align=context['align'],
         qr_size=context['qrcode_size'],
         qr_correction=context['qrcode_correction'],
-        image=get_uploaded_image(request.files.get('image', None)),
+        image=get_uploaded_image(request.files.get('image', None), 'red' in context['label_size']),
         font_path=get_font_path(context['font_family'], context['font_style']),
         font_size=context['font_size'],
         line_spacing=context['line_spacing']
